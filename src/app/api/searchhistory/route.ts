@@ -5,8 +5,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthInfoFromCookie } from '@/lib/auth';
 import { db } from '@/lib/db';
 
-export const runtime = 'edge';
-
 // 最大保存条数（与客户端保持一致）
 const HISTORY_LIMIT = 20;
 
@@ -14,6 +12,7 @@ const HISTORY_LIMIT = 20;
  * GET /api/searchhistory
  * 返回 string[]
  */
+export const runtime = 'edge';
 export async function GET(request: NextRequest) {
   try {
     // 从 cookie 获取用户信息

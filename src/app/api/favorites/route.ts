@@ -6,8 +6,6 @@ import { getAuthInfoFromCookie } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { Favorite } from '@/lib/types';
 
-export const runtime = 'edge';
-
 /**
  * GET /api/favorites
  *
@@ -15,6 +13,7 @@ export const runtime = 'edge';
  * 1. 不带 query，返回全部收藏列表（Record<string, Favorite>）。
  * 2. 带 key=source+id，返回单条收藏（Favorite | null）。
  */
+export const runtime = 'edge';
 export async function GET(request: NextRequest) {
   try {
     // 从 cookie 获取用户信息

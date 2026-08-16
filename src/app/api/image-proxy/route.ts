@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 
-export const runtime = 'edge';
-
 // OrionTV 兼容接口
+export const runtime = 'edge';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const imageUrl = searchParams.get('url');

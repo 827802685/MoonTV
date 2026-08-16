@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { getAvailableApiSites, getCacheTime } from '@/lib/config';
 
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 // OrionTV 兼容接口
 export async function GET() {

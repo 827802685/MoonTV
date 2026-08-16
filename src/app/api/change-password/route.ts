@@ -7,7 +7,6 @@ import { getStorage } from '@/lib/db';
 import { IStorage } from '@/lib/types';
 
 export const runtime = 'edge';
-
 export async function POST(request: NextRequest) {
   const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE || 'localstorage';
 

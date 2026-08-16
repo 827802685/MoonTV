@@ -4,8 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getConfig } from '@/lib/config';
 import { db } from '@/lib/db';
 
-export const runtime = 'edge';
-
 // 读取存储类型环境变量，默认 localstorage
 const STORAGE_TYPE =
   (process.env.NEXT_PUBLIC_STORAGE_TYPE as
@@ -58,6 +56,7 @@ async function generateAuthCookie(username: string): Promise<string> {
   return encodeURIComponent(JSON.stringify(authData));
 }
 
+export const runtime = 'edge';
 export async function POST(req: NextRequest) {
   try {
     // localstorage 模式下不支持注册
