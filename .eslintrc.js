@@ -81,4 +81,25 @@ module.exports = {
     React: true,
     JSX: true,
   },
+  overrides: [
+    {
+      files: ['deploy.js', 'scripts/fix-function-names.js'],
+      rules: {
+        '@typescript-eslint/no-var-requires': 'off',
+        'no-console': 'off',
+      },
+    },
+    {
+      files: ['public/sw.js', 'public/workbox-*.js'],
+      rules: {
+        'no-undef': 'off',
+        'no-empty': 'off',
+        'no-cond-assign': 'off',
+        'no-func-assign': 'off',
+        '@typescript-eslint/no-empty-function': 'off',
+        'no-console': 'off',
+        'unused-imports/no-unused-vars': 'off',
+      },
+    },
+  ],
 };

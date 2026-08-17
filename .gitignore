@@ -28,6 +28,7 @@ yarn-error.log*
 # local env files
 .env
 .env*.local
+.wrangler/
 
 # vercel
 .vercel
@@ -43,3 +44,6 @@ sitemap-*.xml
 # generated files
 src/lib/runtime.ts
 public/manifest.json
+
+# logs
+*.log
