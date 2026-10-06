@@ -535,6 +535,8 @@ export async function savePlayRecord(
         headers: {
           'Content-Type': 'application/json',
         },
+        // 页面关闭时仍需保证最后一次进度写入完成
+        keepalive: true,
         body: JSON.stringify({ key, record }),
       });
     } catch (err) {
