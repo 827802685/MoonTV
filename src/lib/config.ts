@@ -3,6 +3,7 @@
 import { getStorage } from '@/lib/db';
 
 import { AdminConfig } from './admin.types';
+import { applyEnvSources } from './envSources';
 import runtimeConfig from './runtime';
 
 export interface ApiSite {
@@ -89,8 +90,8 @@ async function initConfig() {
         }
       }
 
-      // 从文件中获取源信息，用于补全源
-      const apiSiteEntries = Object.entries(fileConfig.api_site);
+      // 从文件中获取源信息，并叠加 CUSTOM_SOURCES，用于补全源
+      const apiSites = applyEnvSources(fileConfig.api_site);
       const customCategories = fileConfig.custom_category || [];
 
       if (adminConfig) {
@@ -99,22 +100,22 @@ async function initConfig() {
           (adminConfig.SourceConfig || []).map((s) => [s.key, s])
         );
 
-        apiSiteEntries.forEach(([key, site]) => {
-          sourceConfigMap.set(key, {
-            key,
+        apiSites.forEach((site) => {
+          sourceConfigMap.set(site.key, {
+            key: site.key,
             name: site.name,
             api: site.api,
             detail: site.detail,
             from: 'config',
-            disabled: false,
+            disabled: !!site.disabled,
           });
         });
 
         // 将 Map 转换回数组
         adminConfig.SourceConfig = Array.from(sourceConfigMap.values());
 
-        // 检查现有源是否在 fileConfig.api_site 中，如果不在则标记为 custom
-        const apiSiteKeys = new Set(apiSiteEntries.map(([key]) => key));
+        // 检查现有源是否在配置中，如果不在则标记为 custom
+        const apiSiteKeys = new Set(apiSites.map((site) => site.key));
         adminConfig.SourceConfig.forEach((source) => {
           if (!apiSiteKeys.has(source.key)) {
             source.from = 'custom';
@@ -208,13 +209,13 @@ async function initConfig() {
             AllowRegister: process.env.NEXT_PUBLIC_ENABLE_REGISTER === 'true',
             Users: allUsers as any,
           },
-          SourceConfig: apiSiteEntries.map(([key, site]) => ({
-            key,
+          SourceConfig: apiSites.map((site) => ({
+            key: site.key,
             name: site.name,
             api: site.api,
             detail: site.detail,
             from: 'config',
-            disabled: false,
+            disabled: !!site.disabled,
           })),
           CustomCategories: customCategories.map((category) => ({
             name: category.name,
@@ -256,13 +257,13 @@ async function initConfig() {
         AllowRegister: process.env.NEXT_PUBLIC_ENABLE_REGISTER === 'true',
         Users: [],
       },
-      SourceConfig: Object.entries(fileConfig.api_site).map(([key, site]) => ({
-        key,
+      SourceConfig: applyEnvSources(fileConfig.api_site).map((site) => ({
+        key: site.key,
         name: site.name,
         api: site.api,
         detail: site.detail,
         from: 'config',
-        disabled: false,
+        disabled: !!site.disabled,
       })),
       CustomCategories:
         fileConfig.custom_category?.map((category) => ({
@@ -308,36 +309,39 @@ export async function getConfig(): Promise<AdminConfig> {
     adminConfig.SiteConfig.DisableYellowFilter =
       process.env.NEXT_PUBLIC_DISABLE_YELLOW_FILTER === 'true';
 
-    // 合并文件中的源信息
+    // 合并文件中的源信息（含 CUSTOM_SOURCES 环境变量源）
     fileConfig = runtimeConfig as unknown as ConfigFileStruct;
-    const apiSiteEntries = Object.entries(fileConfig.api_site);
+    const apiSites = applyEnvSources(fileConfig.api_site);
     const sourceConfigMap = new Map(
       (adminConfig.SourceConfig || []).map((s) => [s.key, s])
     );
 
-    apiSiteEntries.forEach(([key, site]) => {
-      const existingSource = sourceConfigMap.get(key);
+    apiSites.forEach((site) => {
+      const existingSource = sourceConfigMap.get(site.key);
       if (existingSource) {
         // 如果已存在，只覆盖 name、api、detail 和 from
         existingSource.name = site.name;
         existingSource.api = site.api;
         existingSource.detail = site.detail;
         existingSource.from = 'config';
+        if (site.disabled) {
+          existingSource.disabled = true;
+        }
       } else {
         // 如果不存在，创建新条目
-        sourceConfigMap.set(key, {
-          key,
+        sourceConfigMap.set(site.key, {
+          key: site.key,
           name: site.name,
           api: site.api,
           detail: site.detail,
           from: 'config',
-          disabled: false,
+          disabled: !!site.disabled,
         });
       }
     });
 
-    // 检查现有源是否在 fileConfig.api_site 中，如果不在则标记为 custom
-    const apiSiteKeys = new Set(apiSiteEntries.map(([key]) => key));
+    // 检查现有源是否在配置中，如果不在则标记为 custom
+    const apiSiteKeys = new Set(apiSites.map((site) => site.key));
     sourceConfigMap.forEach((source) => {
       if (!apiSiteKeys.has(source.key)) {
         source.from = 'custom';
@@ -413,7 +417,7 @@ export async function resetConfig() {
     fileConfig = runtimeConfig as unknown as ConfigFileStruct;
   }
 
-  const apiSiteEntries = Object.entries(fileConfig.api_site);
+  const apiSites = applyEnvSources(fileConfig.api_site);
   const customCategories = fileConfig.custom_category || [];
   let allUsers = userNames.map((uname) => ({
     username: uname,
@@ -445,13 +449,13 @@ export async function resetConfig() {
       AllowRegister: process.env.NEXT_PUBLIC_ENABLE_REGISTER === 'true',
       Users: allUsers as any,
     },
-    SourceConfig: apiSiteEntries.map(([key, site]) => ({
-      key,
+    SourceConfig: apiSites.map((site) => ({
+      key: site.key,
       name: site.name,
       api: site.api,
       detail: site.detail,
       from: 'config',
-      disabled: false,
+      disabled: !!site.disabled,
     })),
     CustomCategories:
       storageType === 'redis'

@@ -3,7 +3,13 @@
 import { CheckCircle, Heart, Link, PlayCircleIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   deleteFavorite,
@@ -14,7 +20,7 @@ import {
   subscribeToDataUpdates,
 } from '@/lib/db.client';
 import { SearchResult } from '@/lib/types';
-import { processImageUrl } from '@/lib/utils';
+import { fallbackImageUrl, processImageUrl } from '@/lib/utils';
 
 import { ImagePlaceholder } from '@/components/ImagePlaceholder';
 
@@ -105,6 +111,23 @@ export default function VideoCard({
   );
   const actualEpisodes = aggregateData?.mostFrequentEpisodes ?? episodes;
   const actualYear = aggregateData?.first.year ?? year;
+
+  // 直连优先加载封面，失败则回退到图片代理
+  const [posterSrc, setPosterSrc] = useState(() =>
+    processImageUrl(actualPoster)
+  );
+  const posterProxiedRef = useRef(false);
+
+  useEffect(() => {
+    posterProxiedRef.current = false;
+    setPosterSrc(processImageUrl(actualPoster));
+  }, [actualPoster]);
+
+  const handlePosterError = useCallback(() => {
+    if (posterProxiedRef.current) return;
+    posterProxiedRef.current = true;
+    setPosterSrc(fallbackImageUrl(actualPoster));
+  }, [actualPoster]);
   const actualQuery = query || '';
   const actualSearchType = isAggregate
     ? aggregateData?.first.episodes?.length === 1
@@ -278,12 +301,13 @@ export default function VideoCard({
         {!isLoading && <ImagePlaceholder aspectRatio='aspect-[2/3]' />}
         {/* 图片 */}
         <Image
-          src={processImageUrl(actualPoster)}
+          src={posterSrc}
           alt={actualTitle}
           fill
           className='object-cover'
           referrerPolicy='no-referrer'
           onLoadingComplete={() => setIsLoading(true)}
+          onError={handlePosterError}
         />
 
         {/* 悬浮遮罩 */}

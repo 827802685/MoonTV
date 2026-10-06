@@ -41,6 +41,19 @@ export function processImageUrl(originalUrl: string): string {
 }
 
 /**
+ * 直连加载失败时的回退地址：优先用用户配置的代理前缀，
+ * 否则走本站 /api/image-proxy（可绕过防盗链与 https 混合内容限制）。
+ */
+export function fallbackImageUrl(originalUrl: string): string {
+  if (!originalUrl) return originalUrl;
+
+  const proxyUrl = getImageProxyUrl();
+  if (proxyUrl) return `${proxyUrl}${encodeURIComponent(originalUrl)}`;
+
+  return `/api/image-proxy?url=${encodeURIComponent(originalUrl)}`;
+}
+
+/**
  * 获取豆瓣代理 URL 设置
  */
 export function getDoubanProxyUrl(): string | null {

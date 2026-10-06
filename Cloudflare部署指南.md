@@ -110,6 +110,33 @@ CREATE INDEX IF NOT EXISTS idx_skip_configs_username_source_id ON skip_configs(u
 | NEXT_PUBLIC_ENABLE_REGISTER       | false                           |
 | NEXT_PUBLIC_DISABLE_YELLOW_FILTER | false                           |
 | NEXT_PUBLIC_SEARCH_MAX_PAGE       | 5                               |
+| CUSTOM_SOURCES                    | 见下方「新增/下线片源」         |
+
+#### 新增、覆盖或下线片源（CUSTOM_SOURCES）
+
+内置片源在 `config.json` 里，改它需要改代码并重新构建。若只想在部署侧增删片源，设置**运行时变量** `CUSTOM_SOURCES`（不要加 `NEXT_PUBLIC_` 前缀），值为 JSON，结构与 `config.json` 的 `api_site` 相同：
+
+```json
+{
+  "mysite": {
+    "api": "https://demo.example.com/api.php/provide/vod",
+    "name": "示例资源",
+    "detail": "https://demo.example.com"
+  },
+  "ruyi": { "disabled": true },
+  "heimuer": {
+    "api": "https://new.heimuer.xyz/api.php/provide/vod",
+    "name": "黑木耳"
+  }
+}
+```
+
+- 新 key 直接追加为可用源；`api` 与 `name` 缺一不可，缺字段的条目会被跳过（控制台留 warn，不影响其他源）。
+- `{"已存在的key":{"disabled":true}}` 用于下线内置源，无需写 `api`/`name`。
+- 同名 key 会覆盖内置源的 `api`/`name`/`detail`，用于换域名。
+- 解析失败（非法 JSON、不是对象）时整体忽略，退回内置源而不是让站点报错。
+
+注意生效方式：Cloudflare Pages 的变量是**随部署固化**的，改完 `CUSTOM_SOURCES` 需要在 Pages 控制台触发一次新部署（不必修改代码或在本地重新构建）。如果希望完全免部署热更新片源，用后台管理页的「影片来源管理」（写入 D1/Redis），或改由 KV 命名空间承载。
 
 ### 5. 部署
 

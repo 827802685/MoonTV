@@ -84,6 +84,18 @@
     "xiaomaomi": {
       "api": "https://zy.xmm.hk/api.php/provide/vod",
       "name": "小猫咪资源"
+    },
+    "iqiyi": {
+      "api": "https://www.iqiyizyapi.com/api.php/provide/vod",
+      "name": "iqiyi资源"
+    },
+    "hwba": {
+      "api": "https://cjhwba.com/api.php/provide/vod",
+      "name": "华为吧资源"
+    },
+    "qiqi": {
+      "api": "https://www.qiqidys.com/api.php/provide/vod",
+      "name": "七七资源"
     }
   }
 }

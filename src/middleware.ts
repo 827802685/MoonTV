@@ -125,6 +125,8 @@ function shouldSkipAuth(pathname: string): boolean {
     '/icons/',
     '/logo.png',
     '/screenshot.png',
+    // 图片代理需被 <img> 直接请求，带不上登录态
+    '/api/image-proxy',
   ];
 
   return skipPaths.some((path) => pathname.startsWith(path));
